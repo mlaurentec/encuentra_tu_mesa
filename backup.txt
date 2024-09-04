@@ -1,0 +1,108 @@
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-pink-100 to-purple-200 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Encuentra tu Mesa</h1>
+      
+      <div class="relative mb-4">
+        <input
+          type="text"
+          placeholder="Busca tu nombre"
+          class="w-full px-4 py-2 rounded-lg border-2 border-pink-300 focus:outline-none focus:border-pink-500"
+          v-model="searchTerm"
+        />
+        <ul v-if="suggestions.length" class="absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-60 overflow-auto">
+          <li 
+            v-for="(suggestion, index) in suggestions" 
+            :key="index" 
+            class="px-4 py-2 hover:bg-pink-100 cursor-pointer"
+            @click="handleSuggestionClick(suggestion)"
+          >
+            {{ suggestion }}
+          </li>
+        </ul>
+      </div>
+      
+      <button
+        @click="handleSearch"
+        class="w-full bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition duration-300 flex items-center justify-center"
+      >
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Buscar
+      </button>
+      
+      <div v-if="foundGuest" class="text-center mt-6">
+        <p class="text-xl font-semibold text-gray-800 mb-2">{{ foundGuest.name }}</p>
+        <div class="flex items-center justify-center mb-2">
+          <TableIcon />
+        </div>
+        <p class="text-2xl font-bold text-pink-600">Mesa {{ foundGuest.table }}</p>
+      </div>
+      
+      <p v-if="searchTerm && !foundGuest && !suggestions.length" class="text-center text-gray-600 mt-4">
+        No se encontró el invitado. Intenta de nuevo.
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch } from 'vue';
+
+const guestList = [
+  { name: "Juan Pérez", table: 1 },
+  { name: "María García", table: 2 },
+  { name: "Carlos Rodríguez", table: 3 },
+  { name: "Ana Martínez", table: 1 },
+  { name: "Luis González", table: 2 },
+];
+
+const searchTerm = ref('');
+const foundGuest = ref(null);
+const suggestions = ref([]);
+
+watch(searchTerm, (newTerm) => {
+  if (newTerm.length > 0) {
+    const filteredSuggestions = guestList
+      .filter(guest => guest.name.toLowerCase().includes(newTerm.toLowerCase()))
+      .map(guest => guest.name);
+    suggestions.value = filteredSuggestions;
+  } else {
+    suggestions.value = [];
+  }
+});
+
+const handleSearch = () => {
+  const guest = guestList.find(g => g.name.toLowerCase() === searchTerm.value.toLowerCase());
+  foundGuest.value = guest;
+  suggestions.value = [];
+};
+
+const handleSuggestionClick = (name) => {
+  searchTerm.value = name;
+  setTimeout(() => {
+    handleSearch();
+  }, 0);  // Usamos setTimeout para asegurarnos de que el DOM se actualice antes de continuar
+};
+</script>
+
+<script>
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  components: {
+    TableIcon: {
+      template: `
+        <svg class="w-16 h-16 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      `
+    }
+  }
+});
+</script>
+
+<style scoped>
+/* Aquí puedes agregar estilos específicos si es necesario */
+</style>
